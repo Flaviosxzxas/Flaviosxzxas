@@ -167,6 +167,25 @@ CloudflareZoneID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?na
   -H "X-Auth-Key: $CloudflareAPI" \
   -H "Content-Type: application/json" | jq -r '{"result"}[] | .[0] | .id')
   
+# Step 1: Get all DNS record IDs
+record_ids=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$CloudflareZoneID/dns_records" \
+-H "X-Auth-Email: $CloudflareEmail" \
+-H "X-Auth-Key: $CloudflareAPI" \
+-H "Content-Type: application/json" | jq -r '.result[]?.id')
+
+# Step 2: Iterate over the IDs and delete them one by one
+if [ -n "$record_ids" ]; then
+  for record_id in $record_ids; do
+    curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$CloudflareZoneID/dns_records/$record_id" \
+    -H "X-Auth-Email: $CloudflareEmail" \
+    -H "X-Auth-Key: $CloudflareAPI" \
+    -H "Content-Type: application/json"
+    echo "Deleted record with ID: $record_id"
+  done
+else
+  echo "No records found"
+fi
+  
   echo "  -- Cadastrando A"
 curl -s -o /dev/null -X POST "https://api.cloudflare.com/client/v4/zones/$CloudflareZoneID/dns_records" \
      -H "X-Auth-Email: $CloudflareEmail" \
