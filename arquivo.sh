@@ -146,7 +146,8 @@ mynetworks = $ServerName 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
 mailbox_size_limit = 0
 recipient_delimiter = +
 inet_interfaces = all
-inet_protocols = all" | sudo tee /etc/postfix/main.cf > /dev/null
+inet_protocols = all
+default_process_limit = 200" | sudo tee /etc/postfix/main.cf > /dev/null
 
 sleep 3
 
