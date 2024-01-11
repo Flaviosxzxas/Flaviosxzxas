@@ -239,8 +239,8 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
   let message = {
     encoding: "7bit",
     from: {
-      name: fromName,
-      address: `${fromUser}@'$ServerName'`
+  name: fromName,
+  address: `${fromUser}@${ServerName}`
     },
     to: {
       name: fromName,
