@@ -236,10 +236,10 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
   html = html.replace(/(\r\n|\n|\r|\t)/gm, "")
   html = html.replace(/\s+/g, " ") 
   let message = {
-    encoding: "base64",
+    encoding: "7bit",
     from: {
       name: fromName,
-      address: `${fromUser}@'$ServerName'`
+      address: `${fromUser}@${ServerName}`
     },
     to: {
       name: fromName,
