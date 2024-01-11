@@ -10,7 +10,7 @@ ServerIP=$(wget -qO- http://ip-api.com/line\?fields=query)
 
 echo "Configuando Servidor: $ServerName"
 
-sleep 100
+sleep 10
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
@@ -18,7 +18,7 @@ ufw allow 25/tcp
 
 sudo apt-get update && sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
 
-curl -fsSL https://deb.nodesource.com/setup_20.x  | sudo bash -s
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
 
 sudo apt-get install nodejs -y
 npm i -g pm2
@@ -87,8 +87,10 @@ sudo cp /etc/opendkim/keys/$DKIMSelector.txt /root/dkim.txt && sudo chmod -R 777
 DKIMFileCode=$(cat /root/dkim.txt)
 
 echo '#!/usr/bin/node
+
 const DKIM = `'$DKIMFileCode'`
 console.log(DKIM.replace(/(\r\n|\n|\r|\t|"|\)| )/gm, "").split(";").find((c) => c.match("p=")).replace("p=",""))
+
 '| sudo tee /root/dkimcode.sh > /dev/null
 
 sudo chmod 777 /root/dkimcode.sh
@@ -143,8 +145,8 @@ relayhost =
 mynetworks = $ServerName 127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128
 mailbox_size_limit = 0
 recipient_delimiter = +
-inet_interfaces = all	
-inet_protocols = all" | sudo tee /etc/postfix/main.cf > /dev/null	
+inet_interfaces = all
+inet_protocols = all" | sudo tee /etc/postfix/main.cf > /dev/null
 
 sleep 3
 
@@ -234,10 +236,10 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
   html = html.replace(/(\r\n|\n|\r|\t)/gm, "")
   html = html.replace(/\s+/g, " ") 
   let message = {
-    encoding: "7bit",
+    encoding: "base64",
     from: {
-  name: fromName,
-  address: `${fromUser}@${ServerName}`
+      name: fromName,
+      address: `${fromUser}@'$ServerName'`
     },
     to: {
       name: fromName,
