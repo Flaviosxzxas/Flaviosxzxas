@@ -44,7 +44,7 @@ echo -e "$ServerName" | sudo tee /etc/hostname > /dev/null
 
 sudo hostnamectl set-hostname "$ServerName"
 
-certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
+sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
