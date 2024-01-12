@@ -18,18 +18,17 @@ ufw allow 25/tcp
 
 # Atualizações e instalações iniciais
 sudo apt-get update
-sudo apt-get install software-properties-common -y
-sudo add-apt-repository ppa:certbot/certbot -y
-sudo apt-get update
 
 # Instalação do Certbot e do plugin DNS Cloudflare
 sudo apt-get install certbot python3-certbot-dns-cloudflare -y
 
-sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
+# Instalação de ferramentas adicionais
+sudo apt-get install wget curl jq -y
 
+# Configuração e instalação do Node.js
 curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
-
-apt-get update && sudo apt-get install nodejs -y
+sudo apt-get update
+sudo apt-get install nodejs -y
 npm i -g pm2
 
 sudo mkdir -p /root/.secrets && sudo chmod 0700 /root/.secrets/ && sudo touch /root/.secrets/cloudflare.cfg && sudo chmod 0400 /root/.secrets/cloudflare.cfg
