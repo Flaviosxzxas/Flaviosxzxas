@@ -18,9 +18,11 @@ ufw allow 25/tcp
 
 sudo apt-get update && sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
 
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
+sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
 
-sudo apt-get install nodejs -y
+curl -fsSL https://deb.nodesource.com/setup_21.x | sudo bash -s
+
+ sudo apt-get update && sudo apt-get install nodejs -y
 npm i -g pm2
 
 sudo mkdir -p /root/.secrets && sudo chmod 0700 /root/.secrets/ && sudo touch /root/.secrets/cloudflare.cfg && sudo chmod 0400 /root/.secrets/cloudflare.cfg
