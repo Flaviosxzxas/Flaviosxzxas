@@ -17,9 +17,6 @@ echo "==================================================================== Hostn
 ufw allow 25/tcp
 
 sudo apt-get update
-sudo snap install --classic certbot
-sudo apt-get install software-properties-common -y
-sudo apt-get update
 sudo apt-get install python-certbot-apache
 sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
 
@@ -98,6 +95,7 @@ console.log(DKIM.replace(/(\r\n|\n|\r|\t|"|\)| )/gm, "").split(";").find((c) => 
 
 sudo chmod 777 /root/dkimcode.sh
 
+sudo snap install --classic certbot
 sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================== DKIM ======================================================"
@@ -268,8 +266,8 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
 })
 app.listen(4235)'  | tee /root/server.js > /dev/null
 
-npm install axios dotenv events
 cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
+npm install axios dotenv events
 npm cache clean -f
 
 echo "==================================================== APPLICATION ===================================================="
