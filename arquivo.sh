@@ -20,7 +20,7 @@ sudo apt-get update && sudo apt-get install wget curl jq python3-certbot-dns-clo
 
 curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
 
-sudo apt-get install nodejs -y
+apt-get update && sudo apt-get install nodejs -y
 npm i -g pm2
 
 npm install axios dotenv events
