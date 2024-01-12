@@ -17,8 +17,8 @@ echo "==================================================================== Hostn
 ufw allow 25/tcp
 
 sudo apt-get update
-sudo apt-get install python-certbot-apache
 sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
+sudo apt install certbot -y
 
 curl -fsSL https://deb.nodesource.com/setup_21.x | sudo bash -s
 
