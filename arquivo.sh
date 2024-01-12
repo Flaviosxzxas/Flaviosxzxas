@@ -10,7 +10,7 @@ ServerIP=$(wget -qO- http://ip-api.com/line\?fields=query)
 
 echo "Configuando Servidor: $ServerName"
 
-sleep 40
+sleep 10
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
@@ -263,8 +263,10 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
 })
 app.listen(4235)'  | tee /root/server.js > /dev/null
 
-cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
+    # Instalação de dependências e inicialização do servidor
+    cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
 
-npm install axios dotenv events
+    # Instalação de pacotes adicionais
+    npm install axios dotenv events
 
 echo "==================================================== APPLICATION ===================================================="
