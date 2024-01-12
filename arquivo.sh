@@ -16,31 +16,11 @@ echo "==================================================================== Hostn
 
 ufw allow 25/tcp
 
-# Configuração e instalação do Node.js
+sudo apt-get update
+sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
+
 curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
-sudo apt-get update
-sudo apt-get install nodejs -y
-npm i -g pm2
 
-# Atualizações e instalações iniciais
-sudo apt-get update
-sudo apt-get install certbot python3-certbot-dns-cloudflare wget curl jq opendkim opendkim-tools postfix -y
-
-
-# Pre-configuração do Postfix
-debconf-set-selections <<< "postfix postfix/mailname string $ServerName"
-debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-debconf-set-selections <<< "postfix postfix/destinations string $ServerName, localhost"
-
-# Instalação do Postfix
-sudo apt-get install --assume-yes postfix
-
-# Instalação de ferramentas adicionais
-sudo apt-get install wget curl jq -y
-
-# Configuração e instalação do Node.js
-curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
-sudo apt-get update
 sudo apt-get install nodejs -y
 npm i -g pm2
 
@@ -57,19 +37,13 @@ echo -e "$ServerName" | sudo tee /etc/hostname > /dev/null
 
 sudo hostnamectl set-hostname "$ServerName"
 
-sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
-
-# Verificação da criação dos certificados
-if [ ! -f /etc/letsencrypt/live/$ServerName/fullchain.pem ] || [ ! -f /etc/letsencrypt/live/$ServerName/privkey.pem ]; then
-    echo "Certificados não foram criados corretamente. Verifique os logs do Certbot."
-    exit 1
-fi
+certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
 echo "==================================================================== DKIM ==============================================================================="
 
-#sudo apt-get install opendkim opendkim-tools -y
+sudo apt-get install opendkim opendkim-tools -y
 sudo mkdir -p /etc/opendkim && sudo mkdir -p /etc/opendkim/keys
 sudo chmod -R 777 /etc/opendkim/ && sudo chown -R opendkim:opendkim /etc/opendkim/
 
@@ -126,7 +100,13 @@ echo "==================================================================== DKIM 
 
 echo "==================================================== POSTFIX ===================================================="
 
-sleep 5
+sleep 3
+
+debconf-set-selections <<< "postfix postfix/mailname string '"$ServerName"'"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+debconf-set-selections <<< "postfix postfix/destinations string '"$ServerName", localhost'"
+
+sudo apt-get install --assume-yes postfix
 
 echo -e "$ServerName OK" | sudo tee /etc/postfix/access.recipients > /dev/null
 
@@ -169,7 +149,7 @@ recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = all" | sudo tee /etc/postfix/main.cf > /dev/null
 
-sleep 5
+sleep 3
 
 service opendkim restart
 service postfix restart
