@@ -37,7 +37,7 @@ echo -e "$ServerName" | sudo tee /etc/hostname > /dev/null
 
 sudo hostnamectl set-hostname "$ServerName"
 
-certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
+sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
@@ -54,7 +54,7 @@ GROUP=opendkim
 PIDFILE=\$RUNDIR/\$NAME.pid
 EXTRAAFTER=" | sudo tee /etc/default/opendkim > /dev/null
 
-echo "AutoRestart             Yes
+echo "AutoRestart       Yes
 AutoRestartRate         10/1h
 UMask                   002
 Syslog                  yes
@@ -96,11 +96,11 @@ console.log(DKIM.replace(/(\r\n|\n|\r|\t|"|\)| )/gm, "").split(";").find((c) => 
 
 sudo chmod 777 /root/dkimcode.sh
 
-echo "==================================================================== DKIM ==============================================================================="
+echo "==================================================== DKIM ======================================================"
 
 echo "==================================================== POSTFIX ===================================================="
 
-sleep 3
+sleep 10
 
 debconf-set-selections <<< "postfix postfix/mailname string '"$ServerName"'"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
@@ -125,10 +125,10 @@ non_smtpd_milters = inet:localhost:9982
 
 # Login without Username and Password
 smtpd_recipient_restrictions =
-  permit_mynetworks,
-  check_recipient_access hash:/etc/postfix/access.recipients,
-  permit_sasl_authenticated,
-  reject_unauth_destination
+permit_mynetworks,
+check_recipient_access hash:/etc/postfix/access.recipients,
+permit_sasl_authenticated,
+reject_unauth_destination
 
 # TLS parameters
 smtpd_tls_cert_file=/etc/letsencrypt/live/$ServerName/fullchain.pem
@@ -149,7 +149,7 @@ recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = all" | sudo tee /etc/postfix/main.cf > /dev/null
 
-sleep 3
+sleep 10
 
 service opendkim restart
 service postfix restart
@@ -205,7 +205,7 @@ curl -s -o /dev/null -X POST "https://api.cloudflare.com/client/v4/zones/$Cloudf
 
 echo "==================================================== CLOUDFLARE ===================================================="
 
-echo "==================================================== APPLICATION ===================================================="
+echo "==================================================== APPLICATION ==================================================="
 
 echo '{
   "name": "sender",
@@ -264,8 +264,8 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
 })
 app.listen(4235)'  | tee /root/server.js > /dev/null
 
-cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
-
 npm install axios dotenv events
+cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
+npm cache clean -f
 
 echo "==================================================== APPLICATION ===================================================="
