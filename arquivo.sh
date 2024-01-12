@@ -17,8 +17,8 @@ echo "==================================================================== Hostn
 ufw allow 25/tcp
 
 sudo apt-get update
-sudo apt-get install software-properties-common
-sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get install software-properties-common -y
+echo | sudo add-apt-repository ppa:certbot/certbot
 sudo apt-get update
 sudo apt-get install python-certbot-apache
 sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
