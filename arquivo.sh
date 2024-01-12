@@ -18,9 +18,7 @@ ufw allow 25/tcp
 
 # Atualizações e instalações iniciais
 sudo apt-get update
-
-# Instalação do Certbot e do plugin DNS Cloudflare
-sudo apt-get install certbot python3-certbot-dns-cloudflare -y
+sudo apt-get install certbot python3-certbot-dns-cloudflare wget curl jq opendkim opendkim-tools postfix -y
 
 # Instalação de ferramentas adicionais
 sudo apt-get install wget curl jq -y
@@ -46,11 +44,17 @@ sudo hostnamectl set-hostname "$ServerName"
 
 sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
+# Verificação da criação dos certificados
+if [ ! -f /etc/letsencrypt/live/$ServerName/fullchain.pem ] || [ ! -f /etc/letsencrypt/live/$ServerName/privkey.pem ]; then
+    echo "Certificados não foram criados corretamente. Verifique os logs do Certbot."
+    exit 1
+fi
+
 echo "==================================================================== Hostname && SSL ===================================================================="
 
 echo "==================================================================== DKIM ==============================================================================="
 
-sudo apt-get install opendkim opendkim-tools -y
+#sudo apt-get install opendkim opendkim-tools -y
 sudo mkdir -p /etc/opendkim && sudo mkdir -p /etc/opendkim/keys
 sudo chmod -R 777 /etc/opendkim/ && sudo chown -R opendkim:opendkim /etc/opendkim/
 
