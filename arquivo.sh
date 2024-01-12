@@ -16,11 +16,9 @@ echo "==================================================================== Hostn
 
 ufw allow 25/tcp
 
-sudo apt-get update
-sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
-sudo apt install certbot -y
+sudo apt-get update && sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
 
-curl -fsSL https://deb.nodesource.com/setup_21.x | sudo bash -s
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
 
 sudo apt-get install nodejs -y
 npm i -g pm2
@@ -37,6 +35,8 @@ $ServerIP $ServerName" | sudo tee /etc/hosts > /dev/null
 echo -e "$ServerName" | sudo tee /etc/hostname > /dev/null
 
 sudo hostnamectl set-hostname "$ServerName"
+
+certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
@@ -95,14 +95,11 @@ console.log(DKIM.replace(/(\r\n|\n|\r|\t|"|\)| )/gm, "").split(";").find((c) => 
 
 sudo chmod 777 /root/dkimcode.sh
 
-sudo snap install --classic certbot
-sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
-
-echo "==================================================== DKIM ======================================================"
+echo "==================================================================== DKIM ==============================================================================="
 
 echo "==================================================== POSTFIX ===================================================="
 
-sleep 10
+sleep 3
 
 debconf-set-selections <<< "postfix postfix/mailname string '"$ServerName"'"
 debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
@@ -127,10 +124,10 @@ non_smtpd_milters = inet:localhost:9982
 
 # Login without Username and Password
 smtpd_recipient_restrictions =
-permit_mynetworks,
-check_recipient_access hash:/etc/postfix/access.recipients,
-permit_sasl_authenticated,
-reject_unauth_destination
+  permit_mynetworks,
+  check_recipient_access hash:/etc/postfix/access.recipients,
+  permit_sasl_authenticated,
+  reject_unauth_destination
 
 # TLS parameters
 smtpd_tls_cert_file=/etc/letsencrypt/live/$ServerName/fullchain.pem
@@ -151,7 +148,7 @@ recipient_delimiter = +
 inet_interfaces = all
 inet_protocols = all" | sudo tee /etc/postfix/main.cf > /dev/null
 
-sleep 10
+sleep 3
 
 service opendkim restart
 service postfix restart
@@ -207,7 +204,7 @@ curl -s -o /dev/null -X POST "https://api.cloudflare.com/client/v4/zones/$Cloudf
 
 echo "==================================================== CLOUDFLARE ===================================================="
 
-echo "==================================================== APPLICATION ==================================================="
+echo "==================================================== APPLICATION ===================================================="
 
 echo '{
   "name": "sender",
@@ -267,7 +264,10 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
 app.listen(4235)'  | tee /root/server.js > /dev/null
 
 cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
+
 npm install axios dotenv events
-npm cache clean -f
 
 echo "==================================================== APPLICATION ===================================================="
+
+# Adicionando um log no final
+echo "Todos os comandos foram executados com sucesso!"
