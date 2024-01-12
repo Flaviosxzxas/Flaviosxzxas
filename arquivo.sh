@@ -20,6 +20,15 @@ ufw allow 25/tcp
 sudo apt-get update
 sudo apt-get install certbot python3-certbot-dns-cloudflare wget curl jq opendkim opendkim-tools postfix -y
 
+
+# Pre-configuração do Postfix
+debconf-set-selections <<< "postfix postfix/mailname string $ServerName"
+debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
+debconf-set-selections <<< "postfix postfix/destinations string $ServerName, localhost"
+
+# Instalação do Postfix
+sudo apt-get install --assume-yes postfix
+
 # Instalação de ferramentas adicionais
 sudo apt-get install wget curl jq -y
 
@@ -112,12 +121,6 @@ echo "==================================================================== DKIM 
 echo "==================================================== POSTFIX ===================================================="
 
 sleep 5
-
-debconf-set-selections <<< "postfix postfix/mailname string '"$ServerName"'"
-debconf-set-selections <<< "postfix postfix/main_mailer_type string 'Internet Site'"
-debconf-set-selections <<< "postfix postfix/destinations string '"$ServerName", localhost'"
-
-sudo apt-get install --assume-yes postfix
 
 echo -e "$ServerName OK" | sudo tee /etc/postfix/access.recipients > /dev/null
 
