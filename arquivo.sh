@@ -37,8 +37,6 @@ echo -e "$ServerName" | sudo tee /etc/hostname > /dev/null
 
 sudo hostnamectl set-hostname "$ServerName"
 
-sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
-
 echo "==================================================================== Hostname && SSL ===================================================================="
 
 echo "==================================================================== DKIM ==============================================================================="
@@ -95,6 +93,8 @@ console.log(DKIM.replace(/(\r\n|\n|\r|\t|"|\)| )/gm, "").split(";").find((c) => 
 '| sudo tee /root/dkimcode.sh > /dev/null
 
 sudo chmod 777 /root/dkimcode.sh
+
+sudo certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================== DKIM ======================================================"
 
