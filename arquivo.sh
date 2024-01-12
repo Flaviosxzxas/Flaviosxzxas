@@ -263,10 +263,8 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
 })
 app.listen(4235)'  | tee /root/server.js > /dev/null
 
-    # Instalação de dependências e inicialização do servidor
-    cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
+cd /root && npm install && npm install axios dotenv events && pm2 start server.js && pm2 startup && pm2 save
 
-    # Instalação de pacotes adicionais
-    npm install axios dotenv events
+sudo reboot
 
 echo "==================================================== APPLICATION ===================================================="
