@@ -16,7 +16,16 @@ echo "==================================================================== Hostn
 
 ufw allow 25/tcp
 
-sudo apt-get update && sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
+# Atualizações e instalações iniciais
+sudo apt-get update
+sudo apt-get install software-properties-common -y
+sudo add-apt-repository ppa:certbot/certbot -y
+sudo apt-get update
+
+# Instalação do Certbot e do plugin DNS Cloudflare
+sudo apt-get install certbot python3-certbot-dns-cloudflare -y
+
+sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
 
 curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
 
