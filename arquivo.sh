@@ -18,12 +18,12 @@ ufw allow 25/tcp
 
 sudo apt-get update && sudo apt-get install wget curl jq python3-certbot-dns-cloudflare -y
 
-sudo apt-get update && sudo apt-get install -y ca-certificates curl gnupg
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
 
-curl -fsSL https://deb.nodesource.com/setup_21.x | sudo bash -s
-
- sudo apt-get update && sudo apt-get install nodejs -y
+sudo apt-get install nodejs -y
 npm i -g pm2
+
+npm install axios dotenv events
 
 sudo mkdir -p /root/.secrets && sudo chmod 0700 /root/.secrets/ && sudo touch /root/.secrets/cloudflare.cfg && sudo chmod 0400 /root/.secrets/cloudflare.cfg
 
@@ -267,11 +267,4 @@ app.listen(4235)'  | tee /root/server.js > /dev/null
 
 cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
 
-cd /root && npm install axios dotenv events
-
-sudo ufw disable
-
-sudo ufw allow 4235
-
-sudo ufw allow from $ServerIP
 echo "==================================================== APPLICATION ===================================================="
