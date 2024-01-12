@@ -16,6 +16,12 @@ echo "==================================================================== Hostn
 
 ufw allow 25/tcp
 
+# Configuração e instalação do Node.js
+curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
+sudo apt-get update
+sudo apt-get install nodejs -y
+npm i -g pm2
+
 # Atualizações e instalações iniciais
 sudo apt-get update
 sudo apt-get install certbot python3-certbot-dns-cloudflare wget curl jq opendkim opendkim-tools postfix -y
