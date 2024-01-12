@@ -53,7 +53,7 @@ GROUP=opendkim
 PIDFILE=\$RUNDIR/\$NAME.pid
 EXTRAAFTER=" | sudo tee /etc/default/opendkim > /dev/null
 
-echo "AutoRestart       Yes
+echo "AutoRestart             Yes
 AutoRestartRate         10/1h
 UMask                   002
 Syslog                  yes
