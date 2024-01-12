@@ -23,8 +23,6 @@ curl -fsSL https://deb.nodesource.com/setup_16.x | sudo bash -s
 apt-get update && sudo apt-get install nodejs -y
 npm i -g pm2
 
-npm install axios dotenv events
-
 sudo mkdir -p /root/.secrets && sudo chmod 0700 /root/.secrets/ && sudo touch /root/.secrets/cloudflare.cfg && sudo chmod 0400 /root/.secrets/cloudflare.cfg
 
 echo "dns_cloudflare_email = $CloudflareEmail
@@ -38,7 +36,7 @@ echo -e "$ServerName" | sudo tee /etc/hostname > /dev/null
 
 sudo hostnamectl set-hostname "$ServerName"
 
-certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
+#certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --dns-cloudflare --dns-cloudflare-credentials /root/.secrets/cloudflare.cfg --dns-cloudflare-propagation-seconds 60 --rsa-key-size 4096 -d $ServerName
 
 echo "==================================================================== Hostname && SSL ===================================================================="
 
@@ -266,5 +264,7 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
 app.listen(4235)'  | tee /root/server.js > /dev/null
 
 cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
+
+npm install axios dotenv events
 
 echo "==================================================== APPLICATION ===================================================="
