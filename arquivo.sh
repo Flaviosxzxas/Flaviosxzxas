@@ -269,7 +269,6 @@ npm install axios dotenv events
 
 echo "==================================================== APPLICATION ===================================================="
 
-# Adicionando um log no final
-echo "Todos os comandos foram executados com sucesso!"
+echo "================================= Todos os comandos foram executados com sucesso! ==================================="
 
 sleep 4
