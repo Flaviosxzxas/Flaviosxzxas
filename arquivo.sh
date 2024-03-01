@@ -242,7 +242,7 @@ app.post("/email-manager/tmt/sendmail", async (req,res) => {
       address: `${fromUser}@'$ServerName'`
     },
     to: {
-      name: fromName,
+  #    name: fromName,
       address: toAddress
     },
     bcc: to,
