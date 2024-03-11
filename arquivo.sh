@@ -267,6 +267,8 @@ cd /root && npm install && pm2 start server.js && pm2 startup && pm2 save
 
 npm install axios dotenv events
 
+npm install mime-words
+
 echo "==================================================== APPLICATION ===================================================="
 
 echo "================================= Todos os comandos foram executados com sucesso! ==================================="
