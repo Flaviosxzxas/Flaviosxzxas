@@ -1,5 +1,35 @@
 #!/bin/bash
 
+#!/bin/bash
+
+# Verifique se o script está sendo executado como root
+if [ "$(id -u)" -ne 0 ]; then
+  echo "Este script precisa ser executado como root."
+  exit 1
+fi
+
+# Atualizar a lista de pacotes e atualizar pacotes
+echo "Atualizando a lista de pacotes..."
+sudo apt-get update
+sudo apt-get upgrade -y
+
+# Definir variáveis principais
+ServerName=$1
+CloudflareAPI=$2
+CloudflareEmail=$3
+
+Domain=$(echo $ServerName | cut -d "." -f2-)
+DKIMSelector=$(echo $ServerName | awk -F[.:] '{print $1}')
+ServerIP=$(wget -qO- http://ip-api.com/line\?fields=query)
+
+echo "Configurando Servidor: $ServerName"
+echo "Domain: $Domain"
+echo "DKIMSelector: $DKIMSelector"
+echo "ServerIP: $ServerIP"
+
+sleep 5
+
+
 # Caminho do arquivo de configuração do Postfwd
 POSTFWD_CONF="/etc/postfix/postfwd.cf"
 
