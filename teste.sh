@@ -124,8 +124,8 @@ POSTFWD_CONF="/etc/postfix/postfwd.cf"
 
 # Criar arquivo de configuração do Postfwd
 if [ ! -f "$POSTFWD_CONF" ]; then
-    echo "Criando arquivo de configuração do Postfwd..."
-    cat <<EOF > "$POSTFWD_CONF"
+    echo "Arquivo de configuração $POSTFWD_CONF não encontrado. Criando..."
+    sudo tee "$POSTFWD_CONF" > /dev/null <<EOF
 pidfile=/run/postfwd/postfwd.pid
 #######################################################
 # Regras de Controle de Limites por Servidor
@@ -247,6 +247,13 @@ id=no-limit
 pattern=recipient mx=.*
 action=permit
 EOF
+fi
+
+    # Ajustar a propriedade e permissões do arquivo de configuração
+    sudo chown postfwd:postfwd "$POSTFWD_CONF"  # Ajustar a propriedade do arquivo
+    sudo chmod 640 "$POSTFWD_CONF"  # Ajustar as permissões do arquivo
+else
+    echo "Arquivo de configuração $POSTFWD_CONF já existe."
 fi
 
 # Criar e ajustar permissões do diretório de PID
