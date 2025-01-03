@@ -524,5 +524,10 @@ if [ -f /var/run/reboot-required ]; then
   sleep 5
   sudo reboot
 else
-  echo "Reboot não necessário. Finalizando o script."
+  echo "Reboot não necessário. Aguardando 5 segundos para leitura antes de finalizar o script..."
+  sleep 5
 fi
+
+# Finaliza o script explicitamente
+echo "Finalizando o script."
+exit 0
