@@ -202,7 +202,7 @@ action='rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora at
 # Personal (Arnet)
 id=limit-personal
 pattern=recipient mx=.*personal.com.ar
-action='rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora atingido para Personal (Arnet)."'
+action='rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora atingido para Personal Arnet."'
 
 # Telecom
 id=limit-telecom
