@@ -29,6 +29,7 @@ echo "ServerIP: $ServerIP"
 
 sleep 5
 
+POSTFWD_CONF="/etc/postfix/postfwd.cf"
 
 # Função para garantir que as dependências necessárias estejam instaladas
 install_dependencies() {
