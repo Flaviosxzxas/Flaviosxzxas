@@ -30,19 +30,38 @@ echo "ServerIP: $ServerIP"
 sleep 5
 
 
-# Caminho do arquivo de configuração do Postfwd
-POSTFWD_CONF="/etc/postfix/postfwd.cf"
-POSTFWD_PID_DIR="/var/run/postfwd"
-POSTFWD_TMP_DIR="/var/tmp"
-
 # Função para garantir que as dependências necessárias estejam instaladas
 install_dependencies() {
     echo "Instalando dependências necessárias..."
     export DEBIAN_FRONTEND=noninteractive
     sudo apt-get update -y
+
+    # Verificar se o repositório universe está habilitado e habilitá-lo se necessário
+    if ! grep -q "^deb .*universe" /etc/apt/sources.list; then
+        echo "Habilitando repositório 'universe'..."
+        sudo add-apt-repository universe
+        sudo apt-get update -y
+    fi
+
+    # Tentar instalar pacotes via apt-get
     if ! sudo apt-get install -y postfwd libsys-syslog-perl libnet-cidr-perl libmail-sender-perl libdata-dumper-perl libnet-dns-perl libmime-tools-perl liblog-any-perl perl postfix; then
-        echo "Erro ao instalar dependências." >&2
-        exit 1
+        echo "Erro ao instalar dependências com apt-get. Tentando instalar pacotes Perl via CPAN." >&2
+
+        # Instalar dependências Perl via cpanminus (fallback)
+        if ! sudo apt-get install -y cpanminus; then
+            echo "Erro ao instalar o cpanminus. Tentando usar CPAN diretamente." >&2
+            sudo apt-get install -y perl
+            sudo cpan install Data::Dumper
+        else
+            echo "Instalando pacotes Perl necessários via cpanminus..."
+            sudo cpanm Data::Dumper
+            sudo cpanm Sys::Syslog
+            sudo cpanm Net::CIDR
+            sudo cpanm Mail::Sender
+            sudo cpanm Net::DNS
+            sudo cpanm MIME::Tools
+            sudo cpanm Log::Any
+        fi
     fi
 }
 
@@ -53,6 +72,7 @@ if ! dpkg -l | grep -q postfwd; then
 else
     echo "Postfwd e dependências já instalados."
 fi
+
 
 # Criar usuário e grupo 'postfwd', se necessário
 if ! id "postfwd" &>/dev/null; then
