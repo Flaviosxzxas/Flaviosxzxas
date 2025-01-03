@@ -32,70 +32,86 @@ sleep 5
 
 # Caminho do arquivo de configuração do Postfwd
 POSTFWD_CONF="/etc/postfix/postfwd.cf"
+POSTFWD_PID_DIR="/var/run/postfwd"
+POSTFWD_TMP_DIR="/var/tmp"
 
-# Criar usuário 'postfw' e associar ao grupo 'postfix'
-if ! id "postfw" &>/dev/null; then
-    echo "Criando usuário 'postfw'..."
-    sudo useradd -r -g postfix -s /usr/sbin/nologin postfw || { echo "Erro ao criar usuário 'postfw'."; exit 1; }
+# Função para garantir que as dependências necessárias estejam instaladas
+install_dependencies() {
+    echo "Instalando dependências necessárias..."
+    export DEBIAN_FRONTEND=noninteractive
+    sudo apt-get update -y
+    if ! sudo apt-get install -y postfwd libsys-syslog-perl libnet-cidr-perl libmail-sender-perl libdata-dumper-perl libnet-dns-perl libmime-tools-perl liblog-any-perl perl postfix; then
+        echo "Erro ao instalar dependências." >&2
+        exit 1
+    fi
+}
+
+# Verificar se as dependências estão instaladas
+echo "Verificando dependências..."
+if ! dpkg -l | grep -q postfwd; then
+    install_dependencies
 else
-    echo "Usuário 'postfw' já existe."
+    echo "Postfwd e dependências já instalados."
 fi
 
-# Verificar se o postfwd está instalado
+# Criar usuário e grupo 'postfwd', se necessário
+if ! id "postfwd" &>/dev/null; then
+    echo "Usuário 'postfwd' não encontrado. Tentando criar..."
+    
+    # Tentar criar o grupo 'postfwd'
+    if ! getent group postfwd &>/dev/null; then
+        sudo groupadd postfwd || { echo "Erro ao criar grupo 'postfwd'. Verificando novamente..."; }
+    fi
+
+    # Tentar criar o usuário 'postfwd'
+    sudo useradd -r -g postfwd -s /usr/sbin/nologin postfwd || {
+        echo "Erro ao criar usuário 'postfwd'. Verificando novamente..."
+    }
+fi
+
+# Verificar novamente se o usuário foi criado
+if ! id "postfwd" &>/dev/null; then
+    echo "Usuário 'postfwd' não foi criado corretamente. Tentando solução alternativa..."
+    
+    # Tentar recriar tudo
+    sudo groupdel postfwd &>/dev/null || true # Excluir o grupo, se ele estiver corrompido
+    sudo userdel postfwd &>/dev/null || true # Excluir o usuário, se ele estiver corrompido
+    
+    # Criar novamente o grupo e o usuário
+    sudo groupadd postfwd || { echo "Erro crítico ao criar grupo 'postfwd'. Abortando..."; exit 1; }
+    sudo useradd -r -g postfwd -s /usr/sbin/nologin postfwd || { echo "Erro crítico ao criar usuário 'postfwd'. Abortando..."; exit 1; }
+fi
+
+# Mensagem de sucesso após garantir a criação
+echo "Usuário e grupo 'postfwd' configurados com sucesso."
+
+
+# Garantir que o grupo 'nobody' exista
+if ! getent group nobody &>/dev/null; then
+    echo "Criando grupo 'nobody'..."
+    sudo groupadd nobody || { echo "Erro ao criar grupo 'nobody'."; exit 1; }
+else
+    echo "Grupo 'nobody' já existe."
+fi
+
+# Instalar Postfwd, se não estiver instalado
 if ! command -v postfwd &>/dev/null; then
     echo "Postfwd não encontrado. Instalando..."
     export DEBIAN_FRONTEND=noninteractive
-    sudo apt update && sudo apt install postfwd -y || { echo "Erro ao instalar o postfwd."; exit 1; }
+    sudo apt-get update -y && sudo apt-get install -y postfwd || { echo "Erro ao instalar o postfwd."; exit 1; }
+else
+    echo "Postfwd já está instalado."
 fi
 
-# Verificar e corrigir permissões do arquivo de configuração
-if [ -f "$POSTFWD_CONF" ]; then
-    sudo chown root:postfix "$POSTFWD_CONF"
-    sudo chmod 640 "$POSTFWD_CONF"
-else
-    echo "Erro: Arquivo $POSTFWD_CONF não encontrado. Verifique a instalação do Postfwd."
-    exit 1
-fi
-
-# Corrigir permissões do diretório /var/tmp
-sudo mkdir -p /var/tmp
-sudo chmod 1777 /var/tmp
-
-# Criar arquivo de serviço systemd, se não existir
-if [ ! -f /etc/systemd/system/postfwd.service ]; then
-    echo "Criando arquivo de serviço systemd para postfwd..."
-    sudo tee /etc/systemd/system/postfwd.service > /dev/null <<EOF
-[Unit]
-Description=Postfwd - Postfix Policy Server
-After=network.target postfix.service
-Requires=postfix.service
-
-[Service]
-ExecStart=/usr/sbin/postfwd
-ExecReload=/bin/kill -HUP \$MAINPID
-PIDFile=/var/run/postfwd/postfwd.pid
-Restart=on-failure
-User=postfw
-Group=postfix
-
-[Install]
-WantedBy=multi-user.target
-EOF
-    sudo systemctl daemon-reload
-    sudo systemctl enable postfwd
-else
-    echo "Arquivo de serviço systemd já existe."
-fi
-
-# Adicionar regras ao arquivo postfwd.cf
-if grep -q "id=limit-kinghost" "$POSTFWD_CONF"; then
-    echo "Regras já configuradas no $POSTFWD_CONF."
-else
-    echo "Adicionando regras ao arquivo postfwd.cf..."
-    sudo tee -a "$POSTFWD_CONF" > /dev/null <<EOF
+# Verificar se o arquivo de configuração do Postfwd existe
+if [ ! -f "$POSTFWD_CONF" ]; then
+    echo "Arquivo $POSTFWD_CONF não encontrado. Criando..."
+    sudo tee "$POSTFWD_CONF" > /dev/null <<EOF
+pidfile=/run/postfwd/postfwd.pid
 #######################################################
 # Regras de Controle de Limites por Servidor
 #######################################################
+
 # KingHost
 id=limit-kinghost
 pattern=recipient mx=.*kinghost.net
@@ -215,10 +231,65 @@ action=permit
 EOF
 fi
 
+# Criar e ajustar permissões do diretório de PID
+echo "Criando e ajustando permissões do diretório de PID..."
+sudo mkdir -p "/var/run/postfwd" || { echo "Erro ao criar diretório /var/run/postfwd."; exit 1; }
+sudo chown postfwd:postfwd "/var/run/postfwd" || { echo "Erro ao ajustar proprietário do diretório /var/run/postfwd."; exit 1; }
+sudo chmod 750 "/var/run/postfwd" || { echo "Erro ao ajustar permissões do diretório /var/run/postfwd."; exit 1; }
+
+# Criar e ajustar permissões do diretório temporário para cache
+echo "Criando e ajustando permissões do diretório temporário para cache..."
+sudo mkdir -p "/var/tmp/postfwd" || { echo "Erro ao criar diretório /var/tmp/postfwd."; exit 1; }
+sudo chown postfwd:postfwd "/var/tmp/postfwd" || { echo "Erro ao ajustar proprietário do diretório /var/tmp/postfwd."; exit 1; }
+sudo chmod 750 "/var/tmp/postfwd" || { echo "Erro ao ajustar permissões do diretório /var/tmp/postfwd."; exit 1; }
+
+echo "Permissões ajustadas com sucesso!"
+
+# Criar arquivo de serviço systemd, se não existir
+if [ ! -f /etc/systemd/system/postfwd.service ]; then
+    echo "Criando arquivo de serviço systemd para postfwd..."
+    sudo tee /etc/systemd/system/postfwd.service > /dev/null <<EOF
+[Unit]
+Description=Postfwd - Postfix Policy Server
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/postfwd -f /etc/postfix/postfwd.cf -vv --pidfile /run/postfwd/postfwd.pid
+PIDFile=/run/postfwd/postfwd.pid
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable postfwd
+else
+    echo "Arquivo de serviço systemd já existe."
+fi
+
+# Adicionar Postfwd ao master.cf, se ainda não estiver presente
+echo "Verificando se a entrada do Postfwd já está presente no /etc/postfix/master.cf..."
+if ! grep -q "127.0.0.1:10040 inet" /etc/postfix/master.cf; then
+    echo "Adicionando entrada do Postfwd ao /etc/postfix/master.cf..."
+    sudo tee -a /etc/postfix/master.cf > /dev/null <<EOF
+
+# Postfwd Policy Server
+127.0.0.1:10040 inet  n  -  n  -  1  spawn
+  user=postfwd argv=/usr/sbin/postfwd2 -f /etc/postfix/postfwd.cf
+EOF
+    echo "Entrada adicionada com sucesso!"
+else
+    echo "A entrada do Postfwd já existe no /etc/postfix/master.cf."
+fi
+
 # Iniciar e verificar o serviço postfwd
 sudo systemctl start postfwd || { echo "Erro ao iniciar o serviço postfwd."; exit 1; }
 sudo systemctl restart postfix || { echo "Erro ao reiniciar o Postfix."; exit 1; }
 sudo systemctl restart postfwd || { echo "Erro ao reiniciar o serviço postfwd."; exit 1; }
+
+# Verificar o status do serviço
 sudo systemctl status postfwd --no-pager || { echo "Verifique manualmente o status do serviço postfwd."; exit 1; }
 
 echo "Configuração do Postfwd concluída com sucesso!"
+
