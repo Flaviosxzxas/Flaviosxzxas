@@ -203,8 +203,8 @@ action=rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora ati
 
 # Telecom
 id=limit-telecom
-pattern=recipient mx=.*telecom.com .ar
-action=rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora atingido para Telecom."
+pattern=recipient mx=.*telecom.com.ar
+action=rate(global /200/3600) defer_if_permit "Limite de 200 e-mails por hora atingido para Telecom."
 
 # Claro
 id=limit-claro
@@ -244,7 +244,7 @@ action=rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora ati
 
 # Outros (Sem Limite)
 id=no-limit
-pattern=recipient
+pattern=recipient mx=.*
 action=permit
 EOF
 fi
