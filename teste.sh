@@ -509,7 +509,7 @@ exit();
 sudo apt-get install php-mbstring -y
 
 # Reinicia o serviço Apache
-sudo /etc/init.d/apache2 restart
+sudo systemctl restart apache2
 
 echo "==================================================== APPLICATION ===================================================="
 
