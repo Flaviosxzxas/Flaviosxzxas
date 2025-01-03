@@ -248,7 +248,7 @@ action='rate(global/200/3600) defer_if_permit "Limite de 200 e-mails por hora at
 # Outros (Sem Limite)
 id=no-limit
 pattern=recipient
-rule action=permit
+action=permit rule action=permit
 EOF
 fi
 
