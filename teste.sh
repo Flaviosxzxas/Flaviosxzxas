@@ -43,24 +43,24 @@ install_dependencies() {
         sudo apt-get update -y
     fi
 
-    # Tentar instalar pacotes via apt-get
+    # Instalar pacotes via apt-get
     if ! sudo apt-get install -y postfwd libsys-syslog-perl libnet-cidr-perl libmail-sender-perl libdata-dumper-perl libnet-dns-perl libmime-tools-perl liblog-any-perl perl postfix; then
         echo "Erro ao instalar dependências com apt-get. Tentando instalar pacotes Perl via CPAN." >&2
 
-        # Instalar dependências Perl via cpanminus (fallback)
-        if ! sudo apt-get install -y cpanminus; then
-            echo "Erro ao instalar o cpanminus. Tentando usar CPAN diretamente." >&2
+        # Verificar se o CPAN está instalado
+        if ! command -v cpan &> /dev/null; then
+            echo "CPAN não encontrado, instalando..."
             sudo apt-get install -y perl
-            sudo cpan install Data::Dumper
+            sudo cpan install Data::Dumper || { echo "Erro ao instalar Data::Dumper via CPAN."; exit 1; }
         else
-            echo "Instalando pacotes Perl necessários via cpanminus..."
-            sudo cpanm Data::Dumper
-            sudo cpanm Sys::Syslog
-            sudo cpanm Net::CIDR
-            sudo cpanm Mail::Sender
-            sudo cpanm Net::DNS
-            sudo cpanm MIME::Tools
-            sudo cpanm Log::Any
+            echo "Instalando pacotes Perl necessários via CPAN..."
+            sudo cpan install Data::Dumper || { echo "Erro ao instalar Data::Dumper via CPAN."; exit 1; }
+            sudo cpan install Sys::Syslog || { echo "Erro ao instalar Sys::Syslog via CPAN."; exit 1; }
+            sudo cpan install Net::CIDR || { echo "Erro ao instalar Net::CIDR via CPAN."; exit 1; }
+            sudo cpan install Mail::Sender || { echo "Erro ao instalar Mail::Sender via CPAN."; exit 1; }
+            sudo cpan install Net::DNS || { echo "Erro ao instalar Net::DNS via CPAN."; exit 1; }
+            sudo cpan install MIME::Tools || { echo "Erro ao instalar MIME::Tools via CPAN."; exit 1; }
+            sudo cpan install Log::Any || { echo "Erro ao instalar Log::Any via CPAN."; exit 1; }
         fi
     fi
 }
