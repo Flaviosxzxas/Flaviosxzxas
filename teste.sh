@@ -35,13 +35,13 @@ POSTFWD_CONF="/etc/postfix/postfwd.cf"
 install_dependencies() {
     echo "Instalando dependências necessárias..."
     export DEBIAN_FRONTEND=noninteractive
-    sudo apt-get update -y
+    sudo apt-get update -y || { echo "Erro ao atualizar o repositório"; exit 1; }
 
     # Verificar se o repositório universe está habilitado e habilitá-lo se necessário
     if ! grep -q "^deb .*universe" /etc/apt/sources.list; then
         echo "Habilitando repositório 'universe'..."
-        sudo apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc) universe" -y
-        sudo apt-get update -y || { echo "Erro ao habilitar repositório 'universe'."; exit 1; }
+        sudo apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ $(lsb_release -sc) universe" -y || { echo "Erro ao habilitar repositório 'universe'"; exit 1; }
+        sudo apt-get update -y || { echo "Erro ao atualizar repositórios"; exit 1; }
     fi
 
     # Instalar pacotes via apt-get
@@ -75,6 +75,8 @@ else
     echo "Postfwd e dependências já instalados."
 fi
 
+# Continuar execução após instalação de dependências ou após erro
+echo "Continuando a execução do script...
 
 # Criar usuário e grupo 'postfwd', se necessário
 if ! id "postfwd" &>/dev/null; then
