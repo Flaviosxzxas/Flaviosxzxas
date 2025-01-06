@@ -707,7 +707,7 @@ action=permit
 EOF
 
     # Ajustar a propriedade e permissões do arquivo de configuração
-    sudo chown root:postfwd "$POSTFWD_CONF"  # Ajustar a propriedade do arquivo
+    sudo chown root:root "$POSTFWD_CONF"  # Ajustar a propriedade do arquivo
     sudo chmod 640 "$POSTFWD_CONF"  # Ajustar as permissões do arquivo
 
 else
@@ -717,13 +717,13 @@ fi
 # Criar e ajustar permissões do diretório de PID
 echo "Criando e ajustando permissões do diretório de PID..."
 sudo mkdir -p "/var/run/postfwd" || { echo "Erro ao criar diretório /var/run/postfwd."; exit 1; }
-sudo chown postfwd:postfwd "/var/run/postfwd" || { echo "Erro ao ajustar proprietário do diretório /var/run/postfwd."; exit 1; }
+sudo chown root:root "/var/run/postfwd" || { echo "Erro ao ajustar proprietário do diretório /var/run/postfwd."; exit 1; }
 sudo chmod 750 "/var/run/postfwd" || { echo "Erro ao ajustar permissões do diretório /var/run/postfwd."; exit 1; }
 
 # Criar e ajustar permissões do diretório temporário para cache
 echo "Criando e ajustando permissões do diretório temporário para cache..."
 sudo mkdir -p "/var/tmp/postfwd" || { echo "Erro ao criar diretório /var/tmp/postfwd."; exit 1; }
-sudo chown postfwd:postfwd "/var/tmp/postfwd" || { echo "Erro ao ajustar proprietário do diretório /var/tmp/postfwd."; exit 1; }
+sudo chown root:root "/var/tmp/postfwd" || { echo "Erro ao ajustar proprietário do diretório /var/tmp/postfwd."; exit 1; }
 sudo chmod 750 "/var/tmp/postfwd" || { echo "Erro ao ajustar permissões do diretório /var/tmp/postfwd."; exit 1; }
 
 echo "Permissões ajustadas com sucesso!"
@@ -739,7 +739,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-Group=postfwd
+Group=root
 ExecStart=/usr/sbin/postfwd -f /etc/postfix/postfwd.cf -vv --pidfile /run/postfwd/postfwd.pid
 PIDFile=/run/postfwd/postfwd.pid
 Restart=on-failure
