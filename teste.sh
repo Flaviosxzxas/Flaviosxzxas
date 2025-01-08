@@ -1,58 +1,5 @@
 #!/bin/bash
 
-# Verifique se o script está sendo executado como root
-if [ "$(id -u)" -ne 0 ]; then
-  echo "Este script precisa ser executado como root."
-  exit 1
-fi
-
-# Atualizar a lista de pacotes e atualizar pacotes
-echo "Atualizando a lista de pacotes..."
-sudo apt-get update
-sudo apt-get upgrade -y || { echo "Erro ao atualizar os pacotes."; exit 1; }
-
-# Definir variáveis principais
-ServerName=$1
-CloudflareAPI=$2
-CloudflareEmail=$3
-
-# Exportar variáveis principais para subprocessos
-export ServerName
-export CloudflareAPI
-export CloudflareEmail
-
-# Definir variáveis derivadas
-if [ -z "$ServerName" ]; then
-  echo "Erro: ServerName não está definido."
-  exit 1
-fi
-
-Domain=$(echo "$ServerName" | cut -d "." -f2-)
-DKIMSelector=$(echo "$ServerName" | awk -F[.:] '{print $1}')
-export Domain
-export DKIMSelector
-
-# Obter IP público
-ServerIP=$(wget -qO- http://ip-api.com/line\?fields=query)
-if [ -z "$ServerIP" ]; then
-  echo "Erro: Não foi possível obter o IP público."
-  exit 1
-fi
-export ServerIP
-
-# Exibir valores das variáveis para depuração
-echo "ServerName: $ServerName"
-echo "CloudflareAPI: $CloudflareAPI"
-echo "CloudflareEmail: $CloudflareEmail"
-echo "Domain: $Domain"
-echo "DKIMSelector: $DKIMSelector"
-echo "ServerIP: $ServerIP"
-sleep 10
-
-echo "==================================================================== Hostname && SSL ===================================================================="
-
-# Salvar variáveis antes de instalar dependências
-ORIGINAL_VARS=$(declare -p ServerName CloudflareAPI CloudflareEmail Domain DKIMSelector ServerIP)
 
 # Função para verificar e remover resquícios do postfwd2
 clean_postfwd2_residues() {
@@ -328,8 +275,7 @@ sudo systemctl status postfwd --no-pager || { echo "Verifique manualmente o stat
 
 echo "Configuração do Postfwd concluída com sucesso!"
 
-# Restaurar variáveis
-eval "$ORIGINAL_VARS"
+
 echo "==================================================== POSTFIX ===================================================="
 
 echo "======================================================= FIM =========================================================="
