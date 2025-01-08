@@ -17,8 +17,6 @@ echo "==================================================================== Hostn
 
 
 
-# Garantir que o script seja totalmente não interativo
-export DEBIAN_FRONTEND=noninteractive
 
 # Função para verificar e instalar dependências
 install_dependencies() {
