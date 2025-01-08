@@ -16,13 +16,6 @@ ServerName=$1
 CloudflareAPI=$2
 CloudflareEmail=$3
 
-# Verificar se os argumentos foram fornecidos
-if [ -z "$ServerName" ] || [ -z "$CloudflareAPI" ] || [ -z "$CloudflareEmail" ]; then
-  echo "Erro: Argumentos insuficientes fornecidos."
-  echo "Uso: $0 <ServerName> <CloudflareAPI> <CloudflareEmail>"
-  exit 1
-fi
-
 # Exportar variáveis principais para subprocessos
 export ServerName
 export CloudflareAPI
