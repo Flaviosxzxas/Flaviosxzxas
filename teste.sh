@@ -16,44 +16,24 @@ sleep 10
 echo "==================================================================== Hostname && SSL ===================================================================="
 
 
+#!/bin/bash
 
-
-# Função para verificar e instalar dependências
-install_dependencies() {
-    echo "Instalando pacotes via apt-get..."
-    apt-get update || { echo "Erro ao atualizar repositórios"; exit 1; }
-
-    sudo apt-get install -y wget unzip libidn2-0-dev || {
-        echo "Erro ao instalar pacotes básicos via apt-get"; exit 1;
-    }
+# Atualizar pacotes e instalar dependências
+sudo apt-get update
+sudo apt-get install -y wget unzip libidn2-0-dev
 
 # Baixar e instalar o Postfwd
 cd /tmp
-wget https://github.com/postfwd/postfwd/archive/master.zip -O postfwd.zip
-unzip postfwd.zip
+wget https://github.com/postfwd/postfwd/archive/master.zip
+unzip master.zip
 sudo mv postfwd-master /opt/postfwd
 
-# Verificar e instalar módulos Perl necessários
-check_and_install_perl_module() {
-    local module_name=$1
-    if perl -M"$module_name" -e '1' 2>/dev/null; then
-        echo "Módulo Perl $module_name já está instalado. Pulando."
-    else
-        echo "Módulo Perl $module_name não encontrado. Instalando..."
-        sudo cpan -i "$module_name" || { echo "Erro ao instalar $module_name."; exit 1; }
-    fi
-}
-
-# Instalar módulos necessários
-modules=("Net::Server::Daemonize" "Net::Server::Multiplex" "Net::Server::PreFork" "Net::DNS" "IO::Multiplex")
-for module in "${modules[@]}"; do
-    check_and_install_perl_module "$module"
-done
+# Instalar módulos Perl necessários
+sudo cpan install Net::Server::Daemonize Net::Server::Multiplex Net::Server::PreFork Net::DNS IO::Multiplex
 
 # Criar arquivo de configuração do Postfwd
-if [ ! -f "/opt/postfwd/etc/postfwd.cf" ]; then
-    echo "Arquivo de configuração /opt/postfwd/etc/postfwd.cf não encontrado. Criando..."
-    sudo bash -c "cat > /opt/postfwd/etc/postfwd.cf" <<EOF
+sudo mkdir -p /opt/postfwd/etc
+sudo tee /opt/postfwd/etc/postfwd.cf > /dev/null <<EOF
 #######################################################
 # Regras de Controle de Limites por Servidor
 #######################################################
@@ -174,10 +154,6 @@ id=no-limit
 pattern=recipient mx=.*
 action=permit
 EOF
-    echo "Arquivo de configuração criado com sucesso."
-else
-    echo "Arquivo de configuração /opt/postfwd/etc/postfwd.cf já existe. Nenhuma ação necessária."
-fi
 
 # Criar script de inicialização do Postfwd
 sudo tee /opt/postfwd/bin/postfwd-script.sh > /dev/null <<'EOF'
@@ -243,14 +219,18 @@ sudo chmod +x /opt/postfwd/bin/postfwd-script.sh
 # Criar link simbólico para o script de inicialização
 sudo ln -s /opt/postfwd/bin/postfwd-script.sh /etc/init.d/postfwd
 
+# Configurar o Postfix para usar o Postfwd
+sudo tee -a /etc/postfix/main.cf > /dev/null <<EOF
+127.0.0.1:10045_time_limit = 3600
+smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination, check_policy_service inet:127.0.0.1:10045
+EOF
+
 # Reiniciar serviços
 sudo /etc/init.d/postfwd start
 sudo systemctl restart postfix
 
-# Verificar o status do serviço
-sudo systemctl status postfwd --no-pager || { echo "Verifique manualmente o status do serviço postfwd."; exit 1; }
+echo "Configuração concluída com sucesso."
 
-echo "Configuração do Postfwd concluída com sucesso!"
 
 
 echo "==================================================== POSTFIX ===================================================="
